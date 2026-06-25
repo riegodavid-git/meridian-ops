@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meridian Ops — Operations Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#6d28d9; --brand2:#7c3aed; --brand-50:#f5f3ff; --brand-100:#ede9fe; --brand-200:#ddd6fe; --brand-800:#5b21b6;
+  --teal:#0d9488; --teal-100:#ccfbf1; --teal-700:#0f766e;
+  --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b; --muted2:#94a3b8;
+  --line:#e2e8f0; --line2:#f1f5f9;
+  --sh-1:0 1px 2px rgba(15,23,42,.06),0 1px 1px rgba(15,23,42,.04);
+  --sh-2:0 4px 16px rgba(15,23,42,.08);
+  --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Geist',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--brand-100)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.muted2{color:var(--muted2)}
+.small{font-size:12px}
+.tiny{font-size:11px}
+.right{text-align:right}
+.nowrap{white-space:nowrap}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap{gap:10px}.gap-sm{gap:6px}.wrap{flex-wrap:wrap}
+.hide{display:none!important}
+
+/* ---------- login ---------- */
+#login{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:linear-gradient(135deg,#f5f3ff 0%,#f8fafc 45%,#f0fdfa 100%);overflow:auto}
+body.authed #login{display:none}
+.login-card{background:rgba(255,255,255,.96);border:1px solid #fff;border-radius:20px;box-shadow:var(--sh-2);
+  padding:30px;width:100%;max-width:920px;display:grid;grid-template-columns:300px 1fr;gap:28px}
+@media(max-width:840px){.login-card{grid-template-columns:1fr;max-width:440px}}
+.login-left h1{margin:10px 0 2px;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.login-left .sub{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+.login-left p{color:var(--muted);font-size:12.5px;margin:0}
+.brand-badge{width:46px;height:46px;border-radius:12px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;box-shadow:0 4px 10px rgba(109,40,217,.3)}
+.demo-side h3{margin:0 0 2px;font-size:14px;font-weight:600}
+.demo-side .card-sub{margin:0 0 12px;font-size:12px;color:var(--muted)}
+.demo-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.demo-tbl th{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.demo-tbl td{padding:8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.demo-tbl tbody tr{cursor:pointer}
+.demo-tbl tbody tr:hover td{background:var(--brand-50)}
+.note{font-size:11.5px;color:var(--muted);background:var(--brand-50);border:1px solid var(--brand-100);border-radius:10px;padding:9px 11px;margin-top:12px}
+
+/* ---------- app shell ---------- */
+.app{display:grid;grid-template-columns:224px 1fr;min-height:100vh}
+@media(max-width:900px){.app{grid-template-columns:1fr}}
+.sidebar{background:#fff;border-right:1px solid var(--line);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow:auto}
+@media(max-width:900px){.sidebar{position:fixed;z-index:120;width:240px;left:-260px;transition:left .2s;box-shadow:var(--sh-2)}body.drawer .sidebar{left:0}}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sb-brand .bb{width:32px;height:32px;border-radius:9px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.sb-brand .nm{font-weight:600;font-size:14px;line-height:1.1}
+.sb-brand .sub{font-size:11px;color:var(--muted2)}
+.nav{padding:8px 8px 16px;flex:1}
+.nav-sec{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);padding:12px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:#334155;font-size:13.5px;font-weight:500;cursor:pointer;margin:1px 0}
+.nav-item:hover{background:var(--line2)}
+.nav-item.active{background:var(--brand-50);color:var(--brand);font-weight:600}
+.nav-item .ic{width:17px;height:17px;flex:none;opacity:.85}
+.nav-item.active .ic{opacity:1}
+.nav-item .cnt{margin-left:auto;font-size:11px;background:var(--line2);color:var(--muted);border-radius:20px;padding:0 7px;font-weight:600}
+.nav-item.active .cnt{background:var(--brand-100);color:var(--brand)}
+.sb-foot{border-top:1px solid var(--line);padding:12px 14px;font-size:12px}
+.sb-foot .un{font-weight:600}
+.sb-foot .rl{color:var(--muted2);font-size:11px}
+.sb-foot .lk{font-size:11px;color:var(--muted);cursor:pointer}
+.sb-foot .lk:hover{color:var(--brand)}
+.sb-foot .lk.out:hover{color:#dc2626}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;border-bottom:1px solid var(--line);background:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;position:sticky;top:0;z-index:50}
+.hamb{display:none;cursor:pointer}
+@media(max-width:900px){.hamb{display:block}}
+.topbar .pt{font-weight:600;font-size:15px}
+.topbar .spacer{flex:1}
+.icbtn{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#475569;position:relative}
+.icbtn:hover{background:var(--line2)}
+.bell-dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:#ef4444;border:1.5px solid #fff}
+.view{padding:20px;max-width:1180px;width:100%;margin:0 auto;flex:1}
+
+/* ---------- generic ---------- */
+.page-h{margin:0 0 2px;font-size:19px;font-weight:600;letter-spacing:-.01em}
+.page-sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-1)}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:between;gap:10px}
+.card-h .t{font-weight:600;font-size:14px}
+.card-h .s{font-size:12px;color:var(--muted)}
+.card-b{padding:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:880px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh-1);cursor:default}
+.kpi.clk{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.kpi.clk:hover{border-color:var(--brand-200);box-shadow:var(--sh-2)}
+.kpi .kl{font-size:12px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:7px}
+.kpi .kv{font-size:27px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.kpi .ks{font-size:11.5px;color:var(--muted2);margin-top:2px}
+.kpi.alert .kv{color:#dc2626}
+.kpi .kic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--brand-50);color:var(--brand)}
+.kpi.teal .kic{background:var(--teal-100);color:var(--teal-700)}
+.kpi.amber .kic{background:#fef3c7;color:#b45309}
+.kpi.red .kic{background:#fee2e2;color:#dc2626}
+
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap;line-height:1.7}
+.b-slate{background:#f1f5f9;color:#334155}
+.b-green{background:#d1fae5;color:#065f46}
+.b-amber{background:#fef3c7;color:#92400e}
+.b-red{background:#fee2e2;color:#991b1b}
+.b-blue{background:#e0f2fe;color:#075985}
+.b-purple{background:var(--brand-100);color:var(--brand-800)}
+.b-teal{background:var(--teal-100);color:var(--teal-700)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+.btn{display:inline-flex;align-items:center;gap:7px;background:var(--brand);color:#fff;border:none;border-radius:9px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--brand-800)}
+.btn-2{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#334155;border:1px solid var(--line);border-radius:9px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-2:hover{background:var(--line2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);font-weight:600;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tbody tr{cursor:default}
+.tbl.click tbody tr{cursor:pointer}
+.tbl.click tbody tr:hover td{background:var(--brand-50)}
+.tbl .rt{text-align:right}
+
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font-size:12.5px;font-weight:500;padding:5px 11px;border-radius:20px;border:1px solid var(--line);background:#fff;color:#475569;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip:hover{background:var(--line2)}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.chip .c{font-size:11px;opacity:.8}
+
+.inp{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:13px;background:#fff}
+.inp:focus{outline:none;border-color:var(--brand-200);box-shadow:0 0 0 3px var(--brand-50)}
+.search{position:relative;max-width:300px;flex:1}
+.search .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted2)}
+.search input{padding-left:32px}
+
+.alertcard{border:1px solid #fecaca;background:#fef2f2;border-radius:12px;padding:13px 15px}
+.warncard{border:1px solid #fde68a;background:#fffbeb;border-radius:12px;padding:13px 15px}
+
+/* kanban */
+.board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{flex:none;width:230px;background:var(--line2);border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:8px}
+.col-h{display:flex;align-items:center;justify-content:space-between;padding:2px 4px;font-size:12px;font-weight:600;color:#475569}
+.col-h .c{font-size:11px;background:#fff;border-radius:20px;padding:1px 8px;color:var(--muted)}
+.col.hold{background:#fef2f2}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;box-shadow:var(--sh-1)}
+.pcard:hover{border-color:var(--brand-200)}
+.col.hold .pcard{border-color:#fecaca}
+.pcard .po{font-family:var(--mono);font-weight:600;font-size:12.5px}
+.pcard .cu{font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty-col{font-size:12px;color:var(--muted2);text-align:center;padding:14px 0}
+
+/* task list (order detail) */
+.task{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line2)}
+.task:last-child{border-bottom:none}
+.tnode{width:26px;flex:none;display:flex;flex-direction:column;align-items:center}
+.tnode .ring{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:#fff}
+.tnode .ring.done{background:#10b981;border-color:#10b981;color:#fff}
+.tnode .ring.ready{border-color:var(--brand);color:var(--brand)}
+.tnode .line{width:2px;flex:1;background:var(--line2);margin-top:3px}
+.task .tt{font-weight:600;font-size:13.5px}
+.task .tm{font-size:12px;color:var(--muted);margin-top:1px}
+.ev{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--teal-700);background:var(--teal-100);padding:2px 8px;border-radius:7px;margin-top:6px}
+
+.tline{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:12.5px}
+.tline:last-child{border:none}
+.tline .ix{width:26px;height:26px;border-radius:8px;background:var(--brand-50);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:16px;box-shadow:var(--sh-2);max-width:520px;width:100%;max-height:88vh;overflow:auto}
+.modal-h{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between}
+.modal-h .t{font-weight:600;font-size:15px}
+.modal-b{padding:18px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:5px}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:500;opacity:0;transition:.25s;z-index:400;box-shadow:var(--sh-2);pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.kv-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--line2)}
+.kv-row:last-child{border:none}
+.kv-row .k{color:var(--muted)}
+.sec-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted2);margin:22px 0 10px}
+.matrix{width:100%;border-collapse:collapse;font-size:12px}
+.matrix th{padding:8px 6px;text-align:center;font-size:10.5px;font-weight:600;color:#475569;border-bottom:1px solid var(--line)}
+.matrix th.rl{text-align:left;min-width:120px}
+.matrix td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--line2)}
+.matrix td.pm{text-align:left;font-weight:500}
+.matrix td.grp{background:var(--line2);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.cbx{width:15px;height:15px;accent-color:var(--brand);cursor:pointer}
+.pill-link{cursor:pointer;color:var(--brand);font-weight:600}
+.pill-link:hover{text-decoration:underline}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--brand-100);color:var(--brand-800);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex:none}
+.banner{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:12px;padding:11px 15px;font-size:12.5px;color:var(--brand-800);display:flex;gap:10px;align-items:center;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-left">
+      <div class="brand-badge">M</div>
+      <h1>Meridian Ops</h1>
+      <div class="sub">Purchase-order operations for a medical-supply distributor</div>
+      <p>Sign in with a demo account to explore exactly what each department sees and is allowed to do. This is a standalone demo &mdash; everything lives in your browser.</p>
+      <div class="note"><b>Demo build.</b> This single HTML file mocks a real, working web app (Next.js + Supabase + Vercel, with row-level security, realtime, and email). All data here is synthetic.</div>
+    </div>
+    <div class="demo-side">
+      <h3>Demo accounts</h3>
+      <p class="card-sub">Click a row to sign in. Every password is <b>password</b>.</p>
+      <table class="demo-tbl"><thead><tr><th>User</th><th>Role</th><th>Sees</th></tr></thead>
+      <tbody id="demoRows"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="bb">M</div>
+      <div><div class="nm">Meridian Ops</div><div class="sub">Meridian Medical</div></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sb-foot" id="sbFoot"></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="hamb icbtn" onclick="document.body.classList.toggle('drawer')">&#9776;</div>
+      <div class="pt" id="pageTitle">My Tasks</div>
+      <div class="spacer"></div>
+      <div class="icbtn" id="bellBtn" title="Notifications" onclick="App.toggleBell()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="bell-dot" id="bellDot"></span></div>
+    </div>
+    <main class="view" id="view"></main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   Meridian Ops — standalone demo (vanilla JS, synthetic data)
+   ============================================================ */
+const $=(s,r=document)=>r.querySelector(s);
+const el=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const peso=n=>'₱'+(Math.round(n||0)).toLocaleString('en-US');
+function toast(m){const t=el('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ---------- seeded RNG (deterministic) ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let RND=mulberry32(20260625);
+const rnd=()=>RND();
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+const pick=a=>a[Math.floor(rnd()*a.length)];
+
+/* ---------- icons ---------- */
+const IC={
+ tasks:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+ orders:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
+ canvass:'<path d="M3 6h18M3 12h18M3 18h12"/><circle cx="19" cy="18" r="2"/>',
+ inv:'<path d="M21 8V7l-9-4-9 4v10l9 4 9-4v-1"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+ sched:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M8 14h3M8 18h6"/>',
+ truck:'<path d="M1 3h15v13H1zM16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/>',
+ bill:'<path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2-3 2z"/><path d="M8 8h8M8 12h6"/>',
+ board:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/>',
+ work:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11"/>',
+ act:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+ ppl:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11"/>',
+ admin:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+ box:'<path d="M12 2l9 4.9V17L12 22 3 17V6.9z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+ alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+ arrow:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+ pin:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+ phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+ camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+ doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+};
+const ic=(n,s=17)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]||''}</svg>`;
+
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const COMPANY={name:'Meridian Medical Supply Co.',short:'Meridian Medical',app:'Meridian Ops'};
+const LOCATIONS=[{key:'warehouse',name:'Meridian Warehouse'},{key:'production',name:'Meridian Production'},{key:'store',name:'Secondary Store'}];
+
+const ROLES=[
+ {key:'super_admin',label:'Super Admin',desc:'Everything, plus accounts and permissions'},
+ {key:'management',label:'Management',desc:'Read everything; hold or resume orders'},
+ {key:'sales',label:'Sales / Encoder',desc:'Encode POs, confirm with clients'},
+ {key:'warehouse',label:'Warehouse',desc:'Stock checks, prep & load, receiving'},
+ {key:'purchasing',label:'Purchasing',desc:'Canvassing and supplier receivings'},
+ {key:'logistics',label:'Logistics Head',desc:'Delivery scheduling, fleet, exceptions'},
+ {key:'driver',label:'Driver',desc:'Own deliveries only, phone view'},
+ {key:'billing',label:'Billing / Collections',desc:'Invoices, payments, document returns'},
+ {key:'viewer',label:'Viewer',desc:'No access until an admin assigns a role'},
+];
+const PERMS=[
+ ['pages','view.orders','See orders'],['pages','view.canvass','See canvassing'],['pages','view.inventory','See inventory'],
+ ['pages','view.schedule','See schedule'],['pages','view.billing','See billing'],['pages','view.board','See pipeline'],
+ ['pages','view.activity','See activity'],['pages','view.workload','See workload'],['pages','view.mydeliveries','See my deliveries'],
+ ['orders','po.create','Create POs'],['orders','po.edit','Edit POs'],['orders','po.hold','Hold / resume POs'],
+ ['workflow','stock.check','Stock check'],['workflow','canvass.manage','Manage canvassing'],['workflow','client.confirm','Client confirmation'],
+ ['workflow','prepare.load','Prepare & load'],['workflow','pickup.release','Release pickups'],['workflow','delivery.update','Update deliveries'],['workflow','delay.resolve','Resolve delays'],
+ ['inventory','inventory.receive','Receive stock'],['inventory','inventory.transfer','Transfer stock'],['inventory','inventory.adjust','Adjust stock'],['inventory','inventory.count','Stock counts'],
+ ['logistics','schedule.edit','Edit schedule'],
+ ['billing','invoice.create','Issue invoices'],['billing','payment.record','Record payments'],['billing','docs.return','Mark doc returns'],['billing','followup.create','Log follow-ups'],
+ ['tasks','task.create','Create tasks'],
+ ['collab','comment.create','Comment'],['collab','attach.upload','Upload evidence'],
+ ['data','prices.view','See prices'],['data','export.data','Export data'],
+ ['admin','admin.users','Manage users'],['admin','admin.perms','Manage permissions'],['admin','admin.settings','App settings'],
+];
+const ROLE_PERMS={
+ super_admin:PERMS.map(p=>p[1]),
+ management:['view.orders','view.canvass','view.inventory','view.schedule','view.billing','view.board','view.activity','view.workload','po.hold','comment.create','prices.view','export.data'],
+ sales:['view.orders','view.canvass','view.board','po.create','po.edit','client.confirm','task.create','comment.create','attach.upload','prices.view'],
+ warehouse:['view.orders','view.inventory','stock.check','prepare.load','pickup.release','inventory.receive','inventory.transfer','inventory.adjust','inventory.count','task.create','comment.create','attach.upload'],
+ purchasing:['view.orders','view.canvass','view.inventory','canvass.manage','inventory.receive','task.create','comment.create','attach.upload','prices.view'],
+ logistics:['view.orders','view.schedule','schedule.edit','delivery.update','delay.resolve','task.create','comment.create','attach.upload'],
+ driver:['view.mydeliveries','delivery.update','comment.create','attach.upload'],
+ billing:['view.orders','view.billing','invoice.create','payment.record','docs.return','followup.create','task.create','comment.create','attach.upload','prices.view'],
+ viewer:[],
+};
+const USERS=[
+ {key:'admin',name:'Demo Admin',role:'super_admin',dept:'Systems'},
+ {key:'manager',name:'Mia Manager',role:'management',dept:'Operations'},
+ {key:'sales',name:'Sam Sales',role:'sales',dept:'Sales'},
+ {key:'warehouse',name:'Wally Warehouse',role:'warehouse',dept:'Warehouse'},
+ {key:'purchasing',name:'Pia Purchasing',role:'purchasing',dept:'Purchasing'},
+ {key:'logistics',name:'Lito Logistics',role:'logistics',dept:'Logistics'},
+ {key:'driver',name:'Dario Driver',role:'driver',dept:'Logistics'},
+ {key:'billing',name:'Bea Billing',role:'billing',dept:'Billing'},
+ {key:'newuser',name:'Nina Newuser',role:'viewer',dept:'—'},
+].map(u=>({...u,email:u.key+'@demo.meridian'}));
+
+const CUST_NAMES=['Northgate Medical Center','Riverside Family Clinic','Bayview Pharmacy','St. Camillus Hospital','Greenfield Diagnostics','Summit Surgical Center','Harborview Medical Group','Crestwood Dialysis','Meadowbrook Health','Pinecrest District Hospital','Lakeside Birthing Home','Unity Doctors Clinic','Cornerstone Pharmacy','Valley Care Hospital','Brightway Medical Supplies','Westside Urgent Care','Silverlake Clinic','Maplewood Medical','Eastpoint Hospital','Goldcrest Pharmacy','Riverbend Health Center','Foxhill Veterinary'];
+const SUPPLIERS=['MedSource Distribution','Allied Pharma Trading','PrimeCare Supplies','Vertex Medical','Unilab Trading','Cathay Surgical'].map((n,i)=>({id:'sup'+i,name:n}));
+const PRODUCTS_RAW=[
+ ['Surgical Gloves, Latex (M)','box','Brand A',185,260],['Surgical Gloves, Nitrile (L)','box','Brand A',240,330],
+ ['Face Mask, 3-ply (50s)','box','Brand B',55,120],['N95 Respirator','pc','Brand B',38,75],
+ ['IV Cannula G18','pc','Brand C',14,28],['IV Cannula G22','pc','Brand C',14,28],['IV Infusion Set','pc','Brand C',22,45],
+ ['Syringe 5ml','pc','Brand D',3.5,8],['Syringe 10ml','pc','Brand D',4.2,9],['Syringe 1ml Insulin','pc','Brand D',4.8,10],
+ ['Povidone-Iodine 60ml','bottle','Brand E',42,90],['Hydrogen Peroxide 120ml','bottle','Brand E',28,60],
+ ['Gauze Pad 4x4 (100s)','pack','Brand F',95,180],['Elastic Bandage 4"','roll','Brand F',32,70],['Micropore Tape 1"','roll','Brand F',18,40],
+ ['Alcohol 70% 500ml','bottle','Brand E',55,110],['Cotton Balls (300s)','pack','Brand F',38,80],
+ ['Examination Gown','pc','Brand A',45,95],['Surgical Cap (100s)','box','Brand A',75,150],['Shoe Cover (100s)','box','Brand A',60,130],
+ ['Foley Catheter Fr16','pc','Brand C',48,95],['NGT Fr16','pc','Brand C',35,72],['Suction Catheter Fr14','pc','Brand C',18,38],
+ ['Disposable Syringe Pump Set','pc','Brand C',120,230],['ECG Electrodes (50s)','pack','Brand B',140,265],
+ ['Thermometer, Digital','pc','Brand B',95,190],['BP Apparatus, Aneroid','pc','Brand B',420,780],
+ ['Sharps Container 7L','pc','Brand F',95,185],['Underpad 60x90 (10s)','pack','Brand F',88,165],
+ ['Surgical Blade #15 (100s)','box','Brand D',160,300],['Sterile Gloves 7.0','pair','Brand A',22,48],
+ ['Nebulizer Kit','pc','Brand C',58,120],['Oxygen Cannula, Adult','pc','Brand C',16,34],
+];
+
+/* build products with stock + reorder */
+const PRODUCTS=PRODUCTS_RAW.map((p,i)=>{
+ const [name,unit,brand,cost,srp]=p;
+ const wh=ri(0,40)*ri(0,4), pr=ri(0,12)*ri(0,3), st=ri(0,18)*ri(0,2);
+ const reorder=ri(8,40);
+ return {id:'p'+i,sku:'SKU-'+String(1001+i),name,unit,brand,cost,srp,
+   supplier:pick(SUPPLIERS).name,
+   stock:{warehouse:wh,production:pr,store:st},reorder};
+});
+const onHand=p=>p.stock.warehouse+p.stock.production+p.stock.store;
+
+const CUSTOMERS=CUST_NAMES.map((n,i)=>({id:'c'+i,code:'CUS-'+String(101+i),name:n,
+  address:pick(['12 Industria Ave','88 Bayan Road','5 Riverside Blvd','203 Health Park','7 Commerce St','45 Mabuhay Drive'])+', '+pick(['Quezon City','Pasig','Makati','Mandaluyong','Taguig','Marikina']),
+  contact:pick(['Procurement Office','Ms. Reyes','Mr. Santos','Pharmacy Desk','Admin Office','Ms. Cruz']),
+  phone:'0917 '+ri(200,899)+' '+ri(1000,9999),
+  email:'orders@'+n.toLowerCase().replace(/[^a-z]+/g,'')+'.example',
+  terms:pick([0,7,15,30,30,30,45,60])}));
+
+const STAGES=[
+ {key:'encoding',label:'Encoding',tone:'slate'},
+ {key:'stock_check',label:'Stock check',tone:'blue'},
+ {key:'canvassing',label:'Canvassing',tone:'amber'},
+ {key:'client_confirmation',label:'Client confirm',tone:'amber'},
+ {key:'invoicing',label:'Invoicing',tone:'purple'},
+ {key:'preparation',label:'Preparation',tone:'blue'},
+ {key:'scheduling',label:'Scheduling',tone:'teal'},
+ {key:'delivery',label:'Delivery',tone:'teal'},
+ {key:'collection',label:'Collection',tone:'purple'},
+ {key:'completed',label:'Completed',tone:'green'},
+];
+const STAGE=Object.fromEntries(STAGES.map(s=>[s.key,s]));
+const INFLIGHT=['stock_check','canvassing','client_confirmation','invoicing','preparation','scheduling','delivery','collection'];
+const stageIdx=k=>STAGES.findIndex(s=>s.key===k);
+
+/* workflow task template (in order) */
+const TASK_TPL=[
+ {key:'stock_check',title:'Stock check',role:'warehouse',ev:'count sheet'},
+ {key:'canvass',title:'Canvass suppliers',role:'purchasing',ev:'supplier quote'},
+ {key:'client_confirm',title:'Client confirmation',role:'sales',ev:'client approval'},
+ {key:'invoice',title:'Issue invoice',role:'billing',ev:'sales invoice'},
+ {key:'prepare_load',title:'Prepare & load',role:'warehouse',ev:'loaded goods'},
+ {key:'schedule_delivery',title:'Schedule delivery',role:'logistics',ev:''},
+ {key:'deliver',title:'Deliver to client',role:'driver',ev:'signed DR'},
+ {key:'doc_return',title:'Return documents',role:'warehouse',ev:'returned DR'},
+ {key:'collect',title:'Collect payment',role:'billing',ev:'deposit slip'},
+];
+/* which task key corresponds to a stage being "current" */
+const STAGE_TASK={stock_check:'stock_check',canvassing:'canvass',client_confirmation:'client_confirm',invoicing:'invoice',preparation:'prepare_load',scheduling:'schedule_delivery',delivery:'deliver',collection:'collect'};
+
+const DRIVERS=[{id:'d0',name:'Dario Driver',phone:'0917 555 0101'},{id:'d1',name:'Ramon Dela Cruz',phone:'0917 555 0102'},{id:'d2',name:'Ben Aquino',phone:'0917 555 0103'}];
+const VEHICLES=[{id:'v0',name:'Truck Alpha',plate:'ABC 1234'},{id:'v1',name:'Truck Bravo',plate:'XYZ 5678'},{id:'v2',name:'Van Charlie',plate:'JKL 9012'}];
+const TIMESLOTS=['08:00–09:00 AM','09:00–10:00 AM','10:00–11:00 AM','11:00–12:00 NN','01:00–02:00 PM','02:00–03:00 PM','03:00–04:00 PM','04:00–05:00 PM'];
+
+const TODAY=new Date(2026,5,25); // Jun 25 2026
+const dayMs=86400000;
+function addDays(d,n){return new Date(d.getTime()+n*dayMs);}
+function fmtDate(d){return d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';}
+function fmtDay(d){return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function daysBetween(a,b){return Math.round((a-b)/dayMs);}
+
+/* ---------- generate purchase orders ---------- */
+const STAGE_WEIGHTS=[['stock_check',5],['canvassing',4],['client_confirmation',3],['invoicing',3],['preparation',5],['scheduling',4],['delivery',5],['collection',4],['completed',9],['on_hold',3]];
+function weightedStage(){let t=0;STAGE_WEIGHTS.forEach(w=>t+=w[1]);let r=rnd()*t;for(const w of STAGE_WEIGHTS){r-=w[1];if(r<=0)return w[0];}return 'completed';}
+
+const POS=[];
+let invSeq=2001, poSeq=1;
+function genPO(i){
+ const stage=weightedStage();
+ const onHold=stage==='on_hold';
+ const realStage=onHold?pick(['stock_check','canvassing','preparation','scheduling']):stage;
+ const cust=pick(CUSTOMERS);
+ const nLines=ri(1,6);
+ const items=[]; let total=0;
+ const chosen=new Set();
+ for(let l=0;l<nLines;l++){
+   let p=pick(PRODUCTS); let g=0; while(chosen.has(p.id)&&g++<5)p=pick(PRODUCTS);
+   chosen.add(p.id);
+   const qty=ri(1,20)*pick([1,1,1,5,10]);
+   const short=rnd()<0.18;
+   total+=qty*p.srp;
+   items.push({product:p,description:p.name,qty,unit:p.unit,unit_price:p.srp,
+     line_status:short?'shortage':'in_stock',shortage_qty:short?Math.min(qty,ri(1,8)):0});
+ }
+ const isRush=rnd()<0.16;
+ const fulfillment=rnd()<0.74?'deliver':'pickup';
+ const createdAgo=ri(0,26);
+ const created=addDays(TODAY,-createdAgo);
+ const needed=addDays(TODAY,ri(-3,12));
+ const agent=pick(['Sam Sales','Joy Encoder','Sam Sales']);
+ const po={
+   id:'po'+i,po_no:'MRD-26-'+String(1000+poSeq++),customer:cust,agent,
+   send_via:pick(['Email','Viber','Messenger','Hard copy']),
+   needed_by:needed,fulfillment,is_rush:isRush,stage:realStage,on_hold:onHold,
+   hold_reason:onHold?pick(['Price increase from supplier; awaiting client decision','Client requested to hold delivery','Stock discrepancy under review']):null,
+   encoded_by:agent,created_at:created,items,total,
+   stage_since:addDays(TODAY,-ri(0,8)),
+ };
+ buildTasks(po);
+ if(['scheduling','delivery','collection','completed'].includes(realStage) && fulfillment==='deliver') buildDelivery(po);
+ if(['invoicing','preparation','scheduling','delivery','collection','completed'].includes(realStage)) buildInvoice(po);
+ POS.push(po);
+}
+function buildTasks(po){
+ const has_canvass=po.items.some(it=>it.line_status==='shortage');
+ const tpl=TASK_TPL.filter(t=>{
+   if(t.key==='canvass'||t.key==='client_confirm')return has_canvass;
+   if(t.key==='deliver')return po.fulfillment==='deliver';
+   if(t.key==='doc_return')return po.fulfillment==='deliver';
+   return true;
+ });
+ const cur=STAGE_TASK[po.stage];
+ const curIdx=tpl.findIndex(t=>t.key===cur);
+ po.tasks=tpl.map((t,i)=>{
+   let status;
+   if(po.stage==='completed'){status='done';}
+   else if(curIdx<0){status=i===0?'ready':'blocked';}
+   else if(i<curIdx)status='done';
+   else if(i===curIdx)status=po.on_hold?'blocked':'ready';
+   else status='blocked';
+   const role=ROLES.find(r=>r.key===t.role);
+   return {key:t.key,title:t.title,role:t.role,roleLabel:role?role.label:t.role,
+     assignee:t.key==='deliver'?'Dario Driver':null,
+     status,due:addDays(po.needed_by,-ri(0,3)),ev:t.ev,
+     evidence:(status==='done'&&t.ev)?t.ev:null};
+ });
+ po.waiting_on=po.tasks.find(t=>t.status==='ready')||null;
+}
+const DELIVERIES=[];
+function buildDelivery(po){
+ const done=['delivery','collection','completed'].includes(po.stage);
+ const dispatched=po.stage==='delivery'||done;
+ const dd={id:'dl'+DELIVERIES.length,po,
+   date:po.stage==='scheduling'?addDays(TODAY,ri(0,2)):(done?addDays(TODAY,-ri(0,4)):TODAY),
+   timeslot:pick(TIMESLOTS),driver:pick(DRIVERS),vehicle:pick(VEHICLES),
+   status: po.stage==='scheduling'?'scheduled':(done?(rnd()<0.12?'delayed':'delivered'):(rnd()<0.2?'delayed':'dispatched')),
+   received_by: done?pick(['Ms. Reyes','Procurement','Mr. Santos','Pharmacy Desk']):null,
+   delay_note: null};
+ if(dd.status==='delayed'){dd.delay_note=pick(['Traffic; client moved to next slot','Client receiving area closed','Truck breakdown, rerouted']);dd.delay_at=addDays(TODAY,-ri(0,2));}
+ po.delivery=dd; DELIVERIES.push(dd);
+}
+const INVOICES=[];
+function buildInvoice(po){
+ const issued=addDays(po.created_at,ri(1,5));
+ const due=addDays(issued,po.customer.terms||30);
+ let status='unpaid';
+ if(po.stage==='completed')status=rnd()<0.85?'paid':'partial';
+ else if(po.stage==='collection')status=pick(['unpaid','partial','unpaid']);
+ const inv={id:'inv'+INVOICES.length,invoice_no:'INV-'+String(invSeq++),po,customer:po.customer,
+   amount:po.total,issued,due,status,
+   overdue: status!=='paid' && due<TODAY ? daysBetween(TODAY,due):0};
+ po.invoice=inv; INVOICES.push(inv);
+}
+for(let i=0;i<52;i++)genPO(i);
+
+/* ---------- activity + notifications ---------- */
+const ACTIONS=['created the order','completed stock check','recorded a supplier quote','issued an invoice','marked goods loaded','scheduled a delivery','marked delivered','recorded a payment','put the order on hold','resumed the order','returned documents'];
+const ACTORS=['Sam Sales','Wally Warehouse','Pia Purchasing','Bea Billing','Lito Logistics','Dario Driver','Mia Manager'];
+const ACTIVITY=[];
+for(let i=0;i<46;i++){
+ const po=pick(POS);
+ ACTIVITY.push({id:'a'+i,po,actor:pick(ACTORS),action:pick(ACTIONS),at:addDays(TODAY,-rnd()*9)});
+}
+ACTIVITY.sort((a,b)=>b.at-a.at);
+
+/* ============================================================
+   APP STATE + AUTH
+   ============================================================ */
+const App={
+ session:null, view:'home', perms:JSON.parse(JSON.stringify(ROLE_PERMS)),
+ user(){return USERS.find(u=>u.key===this.session);},
+ roleKey(){const u=this.user();return u?u.role:'viewer';},
+ can(p){const r=this.roleKey();if(r==='super_admin')return true;return (this.perms[r]||[]).includes(p);},
+ login(k){this.session=k;document.body.classList.add('authed');this.buildNav();this.go(this.homeView());},
+ logout(){this.session=null;document.body.classList.remove('authed');},
+ homeView(){const r=this.roleKey();if(r==='driver')return 'mydel';return 'home';},
+ toggleBell(){const n=this.myNotifs();alert(n.length?('Notifications\n\n'+n.map(x=>'• '+x).join('\n')):'No new notifications.');el('bellDot').classList.add('hide');},
+ myNotifs(){
+   const r=this.roleKey();const out=[];
+   if(r==='warehouse')out.push('3 orders waiting for stock check','1 receiving due today');
+   if(r==='sales')out.push('2 client approvals waiting');
+   if(r==='billing')out.push('5 invoices ready to issue','2 invoices overdue');
+   if(r==='logistics')out.push(DELIVERIES.filter(d=>d.status==='delayed').length+' delivery delays to resolve');
+   if(r==='driver')out.push('You have deliveries scheduled today');
+   if(r==='management'||r==='super_admin')out.push(POS.filter(p=>p.on_hold).length+' orders on hold need a decision');
+   return out;
+ },
+};
+
+/* ---------- nav ---------- */
+const NAV=[
+ ['Work',[
+   ['home','tasks','My Tasks',null],
+   ['calendar','cal','Calendar',null],
+   ['orders','orders','Orders','view.orders'],
+   ['canvassing','canvass','Canvassing','view.canvass'],
+ ]],
+ ['Inventory',[['inventory','inv','Inventory','view.inventory']]],
+ ['Logistics',[
+   ['schedule','sched','Schedule','view.schedule'],
+   ['mydel','truck','My Deliveries','view.mydeliveries'],
+ ]],
+ ['Billing',[['billing','bill','Billing','view.billing']]],
+ ['Oversight',[
+   ['pipeline','board','Pipeline','view.board'],
+   ['workload','work','Team Workload','view.workload'],
+   ['activity','act','Activity','view.activity'],
+ ]],
+ ['People',[['contacts','ppl','Contacts',null]]],
+ ['Admin',[['admin','admin','Admin','admin.users']]],
+];
+const VIEW_TITLE={home:'My Tasks',calendar:'Calendar',orders:'Orders',canvassing:'Canvassing',inventory:'Inventory',schedule:'Schedule',mydel:'My Deliveries',billing:'Billing',pipeline:'Pipeline board',workload:'Team workload',activity:'Activity',contacts:'Contacts',admin:'Admin'};
+function navCount(v){
+ if(v==='orders')return POS.filter(p=>p.stage!=='completed').length;
+ if(v==='canvassing')return POS.filter(p=>p.stage==='canvassing').length;
+ if(v==='pipeline')return POS.filter(p=>INFLIGHT.includes(p.stage)).length;
+ if(v==='billing')return INVOICES.filter(i=>i.status!=='paid').length;
+ return null;
+}
+App.buildNav=function(){
+ let h='';
+ for(const [sec,items] of NAV){
+   const vis=items.filter(it=>!it[3]||this.can(it[3]));
+   if(!vis.length)continue;
+   h+=`<div class="nav-sec">${sec}</div>`;
+   for(const it of vis){
+     const [v,icn,label,perm]=it;
+     const c=navCount(v);
+     h+=`<div class="nav-item" data-v="${v}" onclick="App.go('${v}')">${ic(icn)}<span>${label}</span>${c?`<span class="cnt">${c}</span>`:''}</div>`;
+   }
+ }
+ el('nav').innerHTML=h;
+ const u=this.user();
+ el('sbFoot').innerHTML=`<div class="un">${esc(u.name)}</div><div class="rl">${esc(ROLES.find(r=>r.key===u.role).label)}</div>
+   <div style="margin-top:8px;display:flex;gap:12px"><span class="lk" onclick="App.go('profile')">My profile</span><span class="lk out" onclick="location.reload()">Sign out</span></div>`;
+};
+App.go=function(v){
+ this.view=v;
+ document.body.classList.remove('drawer');
+ document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
+ el('pageTitle').textContent=VIEW_TITLE[v]||(v.startsWith('order:')?'Order':'');
+ const fn=VIEWS[v]||(v.startsWith('order:')?()=>orderDetail(v.slice(6)):VIEWS.home);
+ el('view').innerHTML=fn();
+ el('view').scrollTop=0; window.scrollTo(0,0);
+};
+
+/* ============================================================
+   SHARED RENDER HELPERS
+   ============================================================ */
+const sBadge=k=>{const s=STAGE[k];return s?`<span class="badge b-${s.tone}">${s.label}</span>`:`<span class="badge b-slate">${esc(k)}</span>`;};
+function pageHead(t,s,right=''){return `<div class="flex justify-between items-center wrap gap" style="margin-bottom:16px"><div><h1 class="page-h">${t}</h1><p class="page-sub" style="margin:0">${s}</p></div><div>${right}</div></div>`;}
+function kpi(o){return `<div class="kpi ${o.cls||''} ${o.click?'clk':''}" ${o.click?`onclick="App.go('${o.click}')"`:''}>
+  <div class="kl">${o.icon?`<span class="kic">${ic(o.icon,16)}</span>`:''}${o.label}</div>
+  <div class="kv">${o.value}</div>${o.sub?`<div class="ks">${o.sub}</div>`:''}</div>`;}
+const ageBadge=days=>{const t=days>=4?'red':days>=2?'amber':'slate';const lbl=days<=0?'New today':`${days}d`;return `<span class="badge b-${t}">${lbl}</span>`;};
+function priceCell(po){return App.can('prices.view')?peso(po.total):'<span class="muted2">hidden</span>';}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+const VIEWS={};
+
+/* ---- HOME (role aware) ---- */
+VIEWS.home=function(){
+ const r=App.roleKey();
+ if(r==='viewer')return viewerHome();
+ if(r==='management'||r==='super_admin')return opsOverview();
+ return myTasks();
+};
+function viewerHome(){
+ return pageHead('Welcome','Your account is active but has no role yet.')+
+ `<div class="card"><div class="card-b" style="text-align:center;padding:40px">
+   <div class="avatar" style="margin:0 auto 12px;width:46px;height:46px;font-size:18px">N</div>
+   <div style="font-weight:600;font-size:15px">No access yet</div>
+   <p class="muted" style="max-width:380px;margin:8px auto 0">An administrator needs to assign you a role before you can see orders, inventory, or schedules. Sign in as <b>admin</b> to assign roles on the Admin page.</p>
+ </div></div>`;
+}
+function myTasks(){
+ const u=App.user(); const role=App.roleKey();
+ const ready=[], waiting=[];
+ POS.forEach(po=>{
+   po.tasks.forEach(t=>{
+     if(t.status==='ready' && (t.role===role || role==='super_admin')) ready.push({po,t});
+     if(t.status==='blocked' && (t.role===role) ){
+       const blocker=po.tasks.find(x=>x.status==='ready');
+       if(blocker)waiting.push({po,t,blocker});
+     }
+   });
+ });
+ const recent=ACTIVITY.filter(a=>a.actor===u.name).slice(0,6);
+ let h=pageHead('My Tasks',`What’s waiting on you, ${esc(u.name.split(' ')[0])}.`);
+ h+=`<div class="grid g3" style="margin-bottom:18px">
+   ${kpi({label:'Ready for you',value:ready.length,icon:'tasks',cls:'teal'})}
+   ${kpi({label:'Waiting on others',value:waiting.length,icon:'clock',cls:'amber'})}
+   ${kpi({label:'Done by you recently',value:recent.length,icon:'act'})}
+ </div>`;
+ h+=`<div class="sec-h">Ready for you</div>`;
+ if(ready.length){
+   h+=`<div class="grid g3">`+ready.slice(0,9).map(({po,t})=>{
+     const age=daysBetween(TODAY,po.stage_since);
+     return `<div class="card"><div class="card-b">
+       <div class="flex justify-between items-center"><span class="mono small" style="font-weight:600">${po.po_no}</span>${ageBadge(age)}</div>
+       <div style="font-weight:600;margin:7px 0 2px">${esc(t.title)}</div>
+       <div class="small muted">${esc(po.customer.name)}</div>
+       <div style="margin-top:10px"><button class="btn btn-sm" onclick="App.go('order:${po.id}')">Open ${ic('arrow',13)}</button></div>
+     </div></div>`;
+   }).join('')+`</div>`;
+ } else h+=`<div class="card"><div class="card-b muted" style="text-align:center;padding:26px">Nothing waiting on you right now. Nice.</div></div>`;
+ if(waiting.length){
+   h+=`<div class="sec-h">Waiting on others</div><div class="grid g3">`+waiting.slice(0,6).map(({po,t,blocker})=>`
+     <div class="card"><div class="card-b">
+       <div class="mono small" style="font-weight:600">${po.po_no}</div>
+       <div style="font-weight:600;margin:6px 0 2px">${esc(t.title)}</div>
+       <div class="small muted">Waiting on: ${esc(blocker.title)} (${esc(blocker.roleLabel)})</div>
+     </div></div>`).join('')+`</div>`;
+ }
+ return h;
+}
+function opsOverview(){
+ const inflight=POS.filter(p=>INFLIGHT.includes(p.stage)&&!p.on_hold);
+ const hold=POS.filter(p=>p.on_hold);
+ const delayed=DELIVERIES.filter(d=>d.status==='delayed');
+ const overdue=INVOICES.filter(i=>i.overdue>0);
+ const overdueAmt=overdue.reduce((s,i)=>s+i.amount,0);
+ let h=pageHead('Operations overview','Where every order is, and what needs a decision.');
+ h+=`<div class="grid g4" style="margin-bottom:18px">
+   ${kpi({label:'In-flight orders',value:inflight.length,icon:'orders',click:'pipeline'})}
+   ${kpi({label:'On hold',value:hold.length,icon:'alert',cls:hold.length?'red alert':'',click:'pipeline'})}
+   ${kpi({label:'Delayed deliveries',value:delayed.length,icon:'truck',cls:delayed.length?'red alert':'',click:'schedule'})}
+   ${kpi({label:'Overdue invoices',value:overdue.length,icon:'cash',cls:overdue.length?'red alert':'',sub:overdueAmt?peso(overdueAmt)+' outstanding':'',click:'billing'})}
+ </div>`;
+ if(hold.length){
+   h+=`<div class="sec-h">Needs your decision</div><div class="grid g2">`+hold.slice(0,4).map(po=>`
+     <div class="alertcard"><div class="flex justify-between items-center"><span class="mono" style="font-weight:600">${po.po_no}</span><span class="badge b-red">On hold ${daysBetween(TODAY,po.stage_since)}d</span></div>
+       <div style="font-weight:600;margin:6px 0 2px">${esc(po.customer.name)}</div>
+       <div class="small muted">${esc(po.hold_reason)}</div>
+       <div style="margin-top:9px"><button class="btn-2 btn-sm" onclick="App.go('order:${po.id}')">Open order</button></div></div>`).join('')+`</div>`;
+ }
+ const bottlenecks=inflight.map(p=>({p,age:daysBetween(TODAY,p.stage_since)})).sort((a,b)=>b.age-a.age).slice(0,6);
+ h+=`<div class="sec-h">Bottlenecks &mdash; oldest in stage</div>
+   <div class="card"><table class="tbl click"><thead><tr><th>PO</th><th>Customer</th><th>Stage</th><th class="rt">Days here</th><th>Waiting on</th></tr></thead><tbody>`+
+   bottlenecks.map(({p,age})=>`<tr onclick="App.go('order:${p.id}')"><td class="mono" style="font-weight:600">${p.po_no}</td><td>${esc(p.customer.name)}</td><td>${sBadge(p.stage)}</td><td class="rt"><span class="badge b-${age>=5?'red':age>=3?'amber':'slate'}">${age}d</span></td><td class="small muted">${p.waiting_on?esc(p.waiting_on.title):'—'}</td></tr>`).join('')+
+   `</tbody></table></div>`;
+ if(delayed.length){
+   h+=`<div class="sec-h">Delivery exceptions</div><div class="grid g2">`+delayed.slice(0,4).map(d=>`
+     <div class="warncard"><div class="flex justify-between items-center"><span class="mono" style="font-weight:600">${d.po.po_no}</span><span class="badge b-amber">Delayed</span></div>
+       <div style="font-weight:600;margin:6px 0 2px">${esc(d.po.customer.name)}</div>
+       <div class="small muted">${esc(d.delay_note)}</div></div>`).join('')+`</div>`;
+ }
+ return h;
+}
+
+/* ---- ORDERS ---- */
+let ordFilter='all', ordSearch='';
+VIEWS.orders=function(){
+ const right=App.can('po.create')?`<button class="btn" onclick="toast('Demo: the New PO form opens here.')">${ic('orders',15)} New purchase order</button>`:'';
+ let h=pageHead('Orders','Every purchase order and where it is in the workflow.',right);
+ const counts={}; POS.forEach(p=>counts[p.stage]=(counts[p.stage]||0)+1);
+ const chips=[['all','All',POS.length],['mine','Mine',POS.filter(p=>p.agent==='Sam Sales').length]]
+   .concat(STAGES.filter(s=>counts[s.key]).map(s=>[s.key,s.label,counts[s.key]]))
+   .concat(POS.some(p=>p.on_hold)?[['on_hold','On hold',POS.filter(p=>p.on_hold).length]]:[]);
+ h+=`<div class="chips">`+chips.map(c=>`<span class="chip ${ordFilter===c[0]?'active':''}" onclick="ordFilter='${c[0]}';App.go('orders')">${c[1]}<span class="c">${c[2]}</span></span>`).join('')+`</div>`;
+ h+=`<div class="flex gap items-center wrap" style="margin-bottom:12px"><div class="search">${ic('search',16)}<input class="inp" placeholder="Search PO number or customer" oninput="ordSearch=this.value.toLowerCase();renderOrdersTable()" value="${esc(ordSearch)}"></div></div>`;
+ h+=`<div class="card" id="ordTableWrap">${ordersTable()}</div>`;
+ return h;
+}
+function ordersFiltered(){
+ return POS.filter(p=>{
+   if(ordFilter==='mine'&&p.agent!=='Sam Sales')return false;
+   else if(ordFilter==='on_hold'&&!p.on_hold)return false;
+   else if(ordFilter!=='all'&&ordFilter!=='mine'&&ordFilter!=='on_hold'&&p.stage!==ordFilter)return false;
+   if(ordSearch&&!(p.po_no.toLowerCase().includes(ordSearch)||p.customer.name.toLowerCase().includes(ordSearch)))return false;
+   return true;
+ });
+}
+function ordersTable(){
+ const rows=ordersFiltered();
+ const showP=App.can('prices.view');
+ return `<table class="tbl click"><thead><tr><th>PO #</th><th>Customer</th><th>Stage</th><th>Needed by</th><th>Fulfillment</th><th class="rt">Days here</th>${showP?'<th class="rt">Total</th>':''}</tr></thead><tbody>`+
+ (rows.length?rows.map(p=>{const age=daysBetween(TODAY,p.stage_since);return `<tr onclick="App.go('order:${p.id}')">
+   <td class="mono" style="font-weight:600">${p.po_no}${p.is_rush?' <span class="badge b-red">Rush</span>':''}</td>
+   <td>${esc(p.customer.name)}</td>
+   <td>${p.on_hold?'<span class="badge b-red">On hold</span>':sBadge(p.stage)}</td>
+   <td class="small">${fmtDate(p.needed_by)}</td>
+   <td class="small muted">${p.fulfillment==='deliver'?'Deliver':'Client pickup'}</td>
+   <td class="rt"><span class="badge b-${age>=5?'red':age>=3?'amber':'slate'}">${age}d</span></td>
+   ${showP?`<td class="rt mono">${peso(p.total)}</td>`:''}</tr>`;}).join(''):`<tr><td colspan="7" class="muted" style="text-align:center;padding:24px">No orders match.</td></tr>`)+
+ `</tbody></table><div class="small muted" style="padding:10px 14px">${rows.length} order${rows.length===1?'':'s'}</div>`;
+}
+function renderOrdersTable(){const w=el('ordTableWrap');if(w)w.innerHTML=ordersTable();}
+
+/* ---- ORDER DETAIL ---- */
+function orderDetail(id){
+ const po=POS.find(p=>p.id===id); if(!po)return '<div class="card"><div class="card-b">Order not found.</div></div>';
+ const showP=App.can('prices.view');
+ let h=`<div style="margin-bottom:14px"><span class="pill-link" onclick="App.go('orders')">${ic('arrow',13)} Back to orders</span></div>`;
+ h+=`<div class="flex justify-between items-center wrap gap" style="margin-bottom:8px">
+   <div class="flex items-center gap"><span class="mono" style="font-size:20px;font-weight:700">${po.po_no}</span>${po.on_hold?'<span class="badge b-red">On hold</span>':sBadge(po.stage)}${po.is_rush?'<span class="badge b-red">Rush</span>':''}</div>
+   <div class="small muted">Needed by ${fmtDate(po.needed_by)} · ${po.fulfillment==='deliver'?'For delivery':'Client pickup'}</div></div>`;
+ if(po.on_hold)h+=`<div class="alertcard" style="margin-bottom:14px"><b>On hold.</b> ${esc(po.hold_reason)} ${App.can('po.hold')?'<button class="btn btn-sm" style="margin-left:8px" onclick="toast(\'Demo: order resumed.\')">Resume order</button>':''}</div>`;
+
+ h+=`<div class="grid g2" style="grid-template-columns:1.6fr 1fr;align-items:start">`;
+ // left
+ h+=`<div>`;
+ // items
+ h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">Line items</div></div><table class="tbl"><thead><tr><th>Item</th><th class="rt">Qty</th>${showP?'<th class="rt">Unit</th>':''}<th>Line status</th></tr></thead><tbody>`+
+ po.items.map(it=>`<tr><td>${esc(it.description)}<div class="tiny muted">${esc(it.product.sku)} · ${esc(it.product.brand)}</div></td><td class="rt">${it.qty} ${esc(it.unit)}</td>${showP?`<td class="rt mono">${peso(it.unit_price)}</td>`:''}<td>${lineBadge(it)}</td></tr>`).join('')+
+ (showP?`<tr><td colspan="2"></td><td class="rt" style="font-weight:700">Total</td><td class="mono" style="font-weight:700">${peso(po.total)}</td></tr>`:'')+`</tbody></table></div>`;
+ // workflow
+ h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">Workflow</div><div class="s">Each step unlocks the next; every completion needs proof attached.</div></div><div class="card-b" style="padding-top:6px">`;
+ po.tasks.forEach((t,i)=>{
+   const last=i===po.tasks.length-1;
+   const ring=t.status==='done'?'<div class="ring done">'+ic('tasks',12)+'</div>':(t.status==='ready'?'<div class="ring ready">●</div>':'<div class="ring">'+(i+1)+'</div>');
+   const sb=t.status==='done'?'<span class="badge b-green">Done</span>':t.status==='ready'?'<span class="badge b-blue">Ready</span>':'<span class="badge b-slate">Blocked</span>';
+   const canAct=t.status==='ready'&&(App.roleKey()===t.role||App.roleKey()==='super_admin');
+   h+=`<div class="task"><div class="tnode">${ring}${last?'':'<div class="line"></div>'}</div>
+     <div style="flex:1"><div class="flex justify-between items-center gap"><span class="tt">${esc(t.title)}</span>${sb}</div>
+     <div class="tm">${esc(t.roleLabel)}${t.assignee?' · '+esc(t.assignee):''} · due ${fmtDate(t.due)}</div>
+     ${t.evidence?`<span class="ev">${ic('doc',12)} ${esc(t.evidence)}</span>`:''}
+     ${canAct?`<div style="margin-top:8px"><button class="btn btn-sm" onclick="completeTask('${po.id}','${t.key}')">${t.ev?'Attach '+t.ev+' & complete':'Mark done'}</button></div>`:''}
+     </div></div>`;
+ });
+ h+=`</div></div>`;
+ h+=`</div>`; // end left
+ // right column
+ h+=`<div>`;
+ h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">Customer</div></div><div class="card-b">
+   <div style="font-weight:600">${esc(po.customer.name)}</div>
+   <div class="small muted" style="margin:3px 0">${ic('pin',12)} ${esc(po.customer.address)}</div>
+   <div class="kv-row"><span class="k">Contact</span><span>${esc(po.customer.contact)}</span></div>
+   <div class="kv-row"><span class="k">Phone</span><span class="mono">${esc(po.customer.phone)}</span></div>
+   <div class="kv-row"><span class="k">Terms</span><span>${po.customer.terms?po.customer.terms+' days':'COD'}</span></div>
+   <div class="kv-row"><span class="k">Encoded by</span><span>${esc(po.encoded_by)}</span></div>
+   <div class="kv-row"><span class="k">Sent via</span><span>${esc(po.send_via)}</span></div>
+ </div></div>`;
+ if(po.invoice){const iv=po.invoice;h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">Invoice</div></div><div class="card-b">
+   <div class="kv-row"><span class="k">${iv.invoice_no}</span><span>${invBadge(iv)}</span></div>
+   ${showP?`<div class="kv-row"><span class="k">Amount</span><span class="mono">${peso(iv.amount)}</span></div>`:''}
+   <div class="kv-row"><span class="k">Issued</span><span>${fmtDate(iv.issued)}</span></div>
+   <div class="kv-row"><span class="k">Due</span><span>${fmtDate(iv.due)}${iv.overdue>0?` <span class="badge b-red">${iv.overdue}d late</span>`:''}</span></div>
+ </div></div>`;}
+ if(po.delivery){const d=po.delivery;h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">Delivery</div></div><div class="card-b">
+   <div class="kv-row"><span class="k">Status</span><span>${delBadge(d.status)}</span></div>
+   <div class="kv-row"><span class="k">Date</span><span>${fmtDate(d.date)} · ${d.timeslot}</span></div>
+   <div class="kv-row"><span class="k">Driver</span><span>${esc(d.driver.name)}</span></div>
+   <div class="kv-row"><span class="k">Vehicle</span><span>${esc(d.vehicle.name)}</span></div>
+   ${d.received_by?`<div class="kv-row"><span class="k">Received by</span><span>${esc(d.received_by)}</span></div>`:''}
+ </div></div>`;}
+ // activity
+ const acts=ACTIVITY.filter(a=>a.po===po).slice(0,5);
+ h+=`<div class="card"><div class="card-h"><div class="t">Activity</div></div><div class="card-b" style="padding-top:8px">`+
+ (acts.length?acts.map(a=>`<div class="tline"><div class="ix">${ic('act',13)}</div><div><b>${esc(a.actor)}</b> ${esc(a.action)}<div class="tiny muted">${fmtDay(a.at)}</div></div></div>`).join(''):'<div class="muted small">No activity yet.</div>')+
+ `</div></div>`;
+ h+=`</div>`; // end right
+ h+=`</div>`;
+ return h;
+}
+function lineBadge(it){const m={in_stock:['b-green','In stock'],shortage:['b-amber','Shortage'],substituted:['b-blue','Substituted'],pending:['b-slate','Pending'],cancelled:['b-red','Cancelled']};const x=m[it.line_status]||m.pending;return `<span class="badge ${x[0]}">${x[1]}${it.shortage_qty?' '+it.shortage_qty:''}</span>`;}
+function completeTask(poId,key){
+ const po=POS.find(p=>p.id===poId);const t=po.tasks.find(x=>x.key===key);
+ t.status='done';if(t.ev)t.evidence=t.ev;
+ const idx=po.tasks.indexOf(t);const next=po.tasks[idx+1];
+ if(next){next.status='ready';if(STAGE_TASK[po.stage]){/* advance stage to next mapped */}}
+ // advance stage roughly
+ const order=['stock_check','canvassing','client_confirmation','invoicing','preparation','scheduling','delivery','collection','completed'];
+ const ci=order.indexOf(po.stage);if(ci>=0&&ci<order.length-1)po.stage=next?order[Math.min(ci+1,order.length-1)]:'completed';
+ if(!next)po.stage='completed';
+ po.stage_since=TODAY;
+ toast('Task completed — next owner notified.');
+ App.buildNav();App.go('order:'+poId);
+}
+
+/* ---- PIPELINE ---- */
+VIEWS.pipeline=function(){
+ let h=pageHead('Pipeline board','Read-only view of all in-flight purchase orders.');
+ const inflight=POS.filter(p=>INFLIGHT.includes(p.stage)&&!p.on_hold);
+ const bn=inflight.map(p=>({p,age:daysBetween(TODAY,p.stage_since)})).sort((a,b)=>b.age-a.age).slice(0,6);
+ h+=`<div class="card" style="margin-bottom:16px"><div class="card-h"><div class="t">Bottlenecks</div><div class="s">Oldest orders stuck in a stage.</div></div>
+   <table class="tbl click"><thead><tr><th>PO</th><th>Customer</th><th>Stage</th><th class="rt">Days stuck</th></tr></thead><tbody>`+
+   bn.map(({p,age})=>`<tr onclick="App.go('order:${p.id}')"><td class="mono" style="font-weight:600">${p.po_no}</td><td>${esc(p.customer.name)}</td><td>${sBadge(p.stage)}</td><td class="rt"><span class="badge b-${age>=5?'red':age>=3?'amber':'slate'}">${age}d</span></td></tr>`).join('')+
+   `</tbody></table></div>`;
+ h+=`<div class="board">`;
+ INFLIGHT.forEach(sk=>{
+   const items=POS.filter(p=>p.stage===sk&&!p.on_hold);
+   h+=`<div class="col"><div class="col-h"><span>${STAGE[sk].label}</span><span class="c">${items.length}</span></div>`+
+   (items.length?items.map(cardMini).join(''):`<div class="empty-col">Empty</div>`)+`</div>`;
+ });
+ const hold=POS.filter(p=>p.on_hold);
+ h+=`<div class="col hold"><div class="col-h"><span>On hold</span><span class="c">${hold.length}</span></div>`+(hold.length?hold.map(cardMini).join(''):`<div class="empty-col">Empty</div>`)+`</div>`;
+ h+=`</div>`;
+ return h;
+}
+function cardMini(p){const age=daysBetween(TODAY,p.stage_since);return `<div class="pcard" onclick="App.go('order:${p.id}')"><div class="flex justify-between items-center"><span class="po">${p.po_no}</span>${age>=3?`<span class="badge b-${age>=5?'red':'amber'}" style="font-size:10px">${age}d</span>`:''}</div><div class="cu">${esc(p.customer.name)}</div>${p.is_rush?'<span class="badge b-red" style="font-size:10px;margin-top:5px">Rush</span>':''}</div>`;}
+
+/* ---- INVENTORY ---- */
+let invLoc='warehouse', invSearch='';
+VIEWS.inventory=function(){
+ const low=PRODUCTS.filter(p=>onHand(p)<p.reorder);
+ let h=pageHead('Inventory','Stock on hand by location. Every number is the sum of the movement ledger.');
+ h+=`<div class="grid g4" style="margin-bottom:16px">
+   ${kpi({label:'Total SKUs',value:PRODUCTS.length,icon:'box'})}
+   ${kpi({label:'Low-stock items',value:low.length,icon:'alert',cls:low.length?'red alert':''})}
+   ${kpi({label:'Open receivings',value:ri(2,5),icon:'truck',cls:'teal'})}
+   ${kpi({label:'Locations',value:LOCATIONS.length,icon:'pin'})}
+ </div>`;
+ h+=`<div class="flex gap items-center wrap" style="margin-bottom:12px">
+   <div class="chips" style="margin:0">`+LOCATIONS.map(l=>`<span class="chip ${invLoc===l.key?'active':''}" onclick="invLoc='${l.key}';App.go('inventory')">${esc(l.name)}</span>`).join('')+`</div>
+   <div class="search">${ic('search',16)}<input class="inp" placeholder="Search SKU or name" oninput="invSearch=this.value.toLowerCase();renderInvTable()" value="${esc(invSearch)}"></div></div>`;
+ h+=`<div class="card" id="invWrap">${invTable()}</div>`;
+ return h;
+}
+function invTable(){
+ const showP=App.can('prices.view');
+ const rows=PRODUCTS.filter(p=>!invSearch||p.name.toLowerCase().includes(invSearch)||p.sku.toLowerCase().includes(invSearch));
+ return `<table class="tbl"><thead><tr><th>SKU</th><th>Item</th><th>Brand</th><th class="rt">On hand (${esc(LOCATIONS.find(l=>l.key===invLoc).name)})</th><th class="rt">Total</th><th class="rt">Reorder pt</th>${showP?'<th class="rt">Cost</th>':''}<th></th></tr></thead><tbody>`+
+ rows.map(p=>{const oh=p.stock[invLoc];const tot=onHand(p);const lowf=tot<p.reorder;return `<tr><td class="mono small">${p.sku}</td><td>${esc(p.name)}</td><td class="small muted">${esc(p.brand)}</td><td class="rt">${oh}</td><td class="rt" style="font-weight:600">${tot}${lowf?' <span class="badge b-red">Low</span>':''}</td><td class="rt small muted">${p.reorder}</td>${showP?`<td class="rt mono">${peso(p.cost)}</td>`:''}<td class="rt"><span class="pill-link small" onclick="toast('Demo: item ledger & lots open here.')">View</span></td></tr>`;}).join('')+
+ `</tbody></table><div class="small muted" style="padding:10px 14px">${rows.length} items</div>`;
+}
+function renderInvTable(){const w=el('invWrap');if(w)w.innerHTML=invTable();}
+
+/* ---- BILLING ---- */
+VIEWS.billing=function(){
+ const toInvoice=POS.filter(p=>p.stage==='invoicing');
+ const open=INVOICES.filter(i=>i.status!=='paid');
+ const overdue=open.filter(i=>i.overdue>0);
+ const paidRecent=INVOICES.filter(i=>i.status==='paid').slice(0,8);
+ const buckets={'0–30':0,'31–60':0,'61–90':0,'90+':0};
+ open.forEach(i=>{const d=i.overdue;if(d<=30)buckets['0–30']++;else if(d<=60)buckets['31–60']++;else if(d<=90)buckets['61–90']++;else buckets['90+']++;});
+ let h=pageHead('Billing','Invoices, payments, and collections.');
+ h+=`<div class="grid g4" style="margin-bottom:16px">
+   ${kpi({label:'To invoice',value:toInvoice.length,icon:'bill',cls:'teal'})}
+   ${kpi({label:'Open invoices',value:open.length,icon:'doc'})}
+   ${kpi({label:'Overdue',value:overdue.length,icon:'alert',cls:overdue.length?'red alert':'',sub:peso(overdue.reduce((s,i)=>s+i.amount,0))})}
+   ${kpi({label:'Collected (paid)',value:INVOICES.filter(i=>i.status==='paid').length,icon:'cash'})}
+ </div>`;
+ h+=`<div class="grid g2" style="align-items:start">`;
+ // collections table
+ h+=`<div class="card"><div class="card-h"><div class="t">Open invoices &amp; collections</div></div><table class="tbl"><thead><tr><th>Invoice</th><th>Customer</th><th class="rt">Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>`+
+   open.slice(0,12).map(i=>`<tr><td class="mono small">${i.invoice_no}</td><td class="small">${esc(i.customer.name)}</td><td class="rt mono">${peso(i.amount)}</td><td class="small">${fmtDate(i.due)}${i.overdue>0?` <span class="badge b-red">${i.overdue}d</span>`:''}</td><td>${invBadge(i)}</td></tr>`).join('')+
+   `</tbody></table></div>`;
+ // aging + queues
+ h+=`<div>`;
+ h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">Collections aging</div></div><div class="card-b"><div class="grid g4" style="gap:8px">`+
+   Object.entries(buckets).map(([k,v])=>`<div style="text-align:center"><div style="font-size:22px;font-weight:700">${v}</div><div class="tiny muted">${k} days</div></div>`).join('')+`</div></div></div>`;
+ h+=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">To-invoice queue</div></div><div class="card-b" style="padding-top:8px">`+
+   (toInvoice.length?toInvoice.slice(0,6).map(p=>`<div class="tline"><div class="ix">${ic('bill',13)}</div><div style="flex:1"><b class="mono small">${p.po_no}</b> ${esc(p.customer.name)}<div class="tiny muted">Suggested ${peso(p.total)}</div></div>${App.can('invoice.create')?`<button class="btn-2 btn-sm" onclick="toast('Demo: issue-invoice dialog.')">Issue</button>`:''}</div>`).join(''):'<div class="muted small">Queue is empty.</div>')+`</div></div>`;
+ h+=`<div class="card"><div class="card-h"><div class="t">Paid recently</div></div><div class="card-b" style="padding-top:8px">`+
+   (paidRecent.length?paidRecent.map(i=>`<div class="tline"><div class="ix">${ic('cash',13)}</div><div style="flex:1"><b class="mono small">${i.invoice_no}</b> ${esc(i.customer.name)}</div><span class="mono small">${peso(i.amount)}</span></div>`).join(''):'<div class="muted small">None.</div>')+`</div></div>`;
+ h+=`</div></div>`;
+ return h;
+}
+
+/* ---- SCHEDULE ---- */
+VIEWS.schedule=function(){
+ const prep=POS.filter(p=>p.stage==='preparation'&&p.fulfillment==='deliver');
+ const today=DELIVERIES.filter(d=>daysBetween(d.date,TODAY)===0);
+ let h=pageHead('Schedule',`Delivery schedule for ${fmtDay(TODAY)}.`);
+ h+=`<div class="grid g4" style="margin-bottom:16px">
+   ${kpi({label:'Ready to schedule',value:prep.length,icon:'box',cls:'amber'})}
+   ${kpi({label:'Today’s deliveries',value:today.length,icon:'truck',cls:'teal'})}
+   ${kpi({label:'Delayed',value:DELIVERIES.filter(d=>d.status==='delayed').length,icon:'alert',cls:DELIVERIES.filter(d=>d.status==='delayed').length?'red alert':''})}
+   ${kpi({label:'Drivers on shift',value:DRIVERS.length,icon:'ppl'})}
+ </div>`;
+ h+=`<div class="grid g2" style="grid-template-columns:1fr 2fr;align-items:start">`;
+ h+=`<div class="card"><div class="card-h"><div class="t">Preparation queue</div><div class="s">Pick rush first.</div></div><div class="card-b" style="padding-top:8px">`+
+   (prep.length?prep.sort((a,b)=>(b.is_rush-a.is_rush)).slice(0,8).map(p=>`<div class="tline"><div class="ix">${ic('box',13)}</div><div style="flex:1"><b class="mono small">${p.po_no}</b> ${esc(p.customer.name)}<div class="tiny muted">Needed ${fmtDate(p.needed_by)}</div></div>${p.is_rush?'<span class="badge b-red">Rush</span>':''} ${App.can('schedule.edit')?`<button class="btn-2 btn-sm" onclick="toast('Demo: schedule dialog (driver, vehicle, slot).')">Schedule</button>`:''}</div>`).join(''):'<div class="muted small">Nothing waiting.</div>')+`</div></div>`;
+ // day board
+ h+=`<div class="card"><div class="card-h"><div class="t">Day board &mdash; ${fmtDay(TODAY)}</div></div><table class="tbl"><thead><tr><th>Time</th>`+VEHICLES.map(v=>`<th>${esc(v.name)}</th>`).join('')+`</tr></thead><tbody>`;
+ TIMESLOTS.forEach(ts=>{
+   h+=`<tr><td class="small mono nowrap">${ts}</td>`;
+   VEHICLES.forEach(v=>{
+     const d=today.find(x=>x.timeslot===ts&&x.vehicle.id===v.id);
+     h+=`<td>${d?`<div class="pcard" style="cursor:pointer;padding:6px 8px" onclick="App.go('order:${d.po.id}')"><span class="po" style="font-size:11.5px">${d.po.po_no}</span><div class="cu">${esc(d.po.customer.name)}</div><div style="margin-top:4px">${delBadge(d.status)}</div></div>`:'<span class="muted2 small">—</span>'}</td>`;
+   });
+   h+=`</tr>`;
+ });
+ h+=`</tbody></table></div>`;
+ h+=`</div>`;
+ return h;
+}
+const delBadge=s=>{const m={scheduled:['b-blue','Scheduled'],dispatched:['b-teal','Dispatched'],delivered:['b-green','Delivered'],delayed:['b-amber','Delayed'],cancelled:['b-red','Cancelled']};const x=m[s]||m.scheduled;return `<span class="badge ${x[0]}">${x[1]}</span>`;};
+const invBadge=i=>{const m={paid:['b-green','Paid'],partial:['b-amber','Partial'],unpaid:['b-slate','Unpaid'],cancelled:['b-red','Cancelled']};const x=m[i.status]||m.unpaid;return `<span class="badge ${x[0]}">${x[1]}</span>`;};
+
+/* ---- MY DELIVERIES (driver) ---- */
+VIEWS.mydel=function(){
+ const mine=DELIVERIES.filter(d=>d.driver.name==='Dario Driver');
+ const todays=mine.filter(d=>daysBetween(d.date,TODAY)<=0&&d.status!=='delivered');
+ const done=mine.filter(d=>d.status==='delivered');
+ let h=pageHead('My deliveries','Today’s stops in sequence.');
+ if(!todays.length&&!done.length)h+=`<div class="card"><div class="card-b muted" style="text-align:center;padding:30px">No deliveries assigned right now.</div></div>`;
+ todays.slice(0,5).forEach(d=>{
+   h+=`<div class="card" style="margin-bottom:14px;max-width:520px"><div class="card-b">
+     <div class="flex justify-between items-center"><div><div class="mono" style="font-weight:600">${d.po.po_no}</div><div class="small muted">${d.timeslot} · ${esc(d.vehicle.name)}</div></div>${delBadge(d.status)}</div>
+     <div style="font-weight:600;margin:10px 0 2px">${esc(d.po.customer.name)}${d.po.is_rush?' <span class="badge b-red">Rush</span>':''}</div>
+     <div class="small muted">${ic('pin',12)} ${esc(d.po.customer.address)}</div>
+     <div class="small muted" style="margin-top:3px">${ic('phone',12)} ${esc(d.po.customer.phone)} · ${esc(d.po.customer.contact)}</div>
+     <div style="margin:11px 0 4px;font-size:12px;font-weight:600;color:#475569">What to deliver</div>
+     ${d.po.items.slice(0,3).map(it=>`<div class="small">• ${it.qty} ${esc(it.unit)} ${esc(it.description)}</div>`).join('')}${d.po.items.length>3?`<div class="tiny muted">+${d.po.items.length-3} more</div>`:''}
+     <div class="flex gap" style="margin-top:14px;flex-wrap:wrap">
+       <button class="btn btn-sm" onclick="toast('Demo: opens maps navigation.')">${ic('pin',13)} Navigate</button>
+       <button class="btn-2 btn-sm" onclick="toast('Demo: report a delay (photo + note).')">${ic('alert',13)} Problem</button>
+       <button class="btn-2 btn-sm" onclick="toast('Demo: add receipt photo.')">${ic('camera',13)} Add photo</button>
+       <button class="btn-2 btn-sm" onclick="toast('Attach the signed DR first to mark delivered.')">Mark delivered</button>
+     </div></div></div>`;
+ });
+ if(done.length){h+=`<div class="sec-h">Done today</div>`;done.slice(0,4).forEach(d=>{h+=`<div class="card" style="margin-bottom:10px;max-width:520px"><div class="card-b" style="padding:12px 16px"><div class="flex justify-between items-center"><div><span class="mono small" style="font-weight:600">${d.po.po_no}</span> <span class="small">${esc(d.po.customer.name)}</span><div class="tiny muted">Received by ${esc(d.received_by||'—')}</div></div><span class="badge b-green">Delivered</span></div></div></div>`;});}
+ return h;
+}
+
+/* ---- WORKLOAD ---- */
+VIEWS.workload=function(){
+ const open=[];
+ POS.forEach(po=>po.tasks.forEach(t=>{if(t.status==='ready'||t.status==='blocked')open.push({po,t});}));
+ const byRole={};
+ open.forEach(({po,t})=>{(byRole[t.roleLabel]=byRole[t.roleLabel]||[]).push({po,t});});
+ let h=pageHead('Team workload','Who is waiting on what, and for how long.');
+ h+=`<div class="grid g4" style="margin-bottom:16px">`+ROLES.filter(r=>!['super_admin','viewer','management'].includes(r.key)).slice(0,4).map(r=>{
+   const c=(byRole[r.label]||[]).filter(x=>x.t.status==='ready').length;
+   return kpi({label:r.label,value:c,sub:'ready now'});
+ }).join('')+`</div>`;
+ h+=`<div class="card"><table class="tbl click"><thead><tr><th>PO</th><th>Task</th><th>Owner</th><th>Status</th><th class="rt">Age</th></tr></thead><tbody>`+
+ open.sort((a,b)=>daysBetween(TODAY,a.po.stage_since)-daysBetween(TODAY,b.po.stage_since)).slice().reverse().slice(0,18).map(({po,t})=>{const age=daysBetween(TODAY,po.stage_since);return `<tr onclick="App.go('order:${po.id}')"><td class="mono small" style="font-weight:600">${po.po_no}</td><td>${esc(t.title)}</td><td class="small">${esc(t.roleLabel)}</td><td>${t.status==='ready'?'<span class="badge b-blue">Ready</span>':'<span class="badge b-slate">Blocked</span>'}</td><td class="rt"><span class="badge b-${age>=5?'red':age>=3?'amber':'slate'}">${age}d</span></td></tr>`;}).join('')+
+ `</tbody></table></div>`;
+ return h;
+}
+
+/* ---- ACTIVITY ---- */
+VIEWS.activity=function(){
+ let h=pageHead('Activity','Audit trail of every order event.');
+ h+=`<div class="card"><div class="card-b" style="padding-top:8px">`+
+ ACTIVITY.slice(0,30).map(a=>`<div class="tline"><div class="ix">${ic('act',13)}</div><div style="flex:1"><b>${esc(a.actor)}</b> ${esc(a.action)} on <span class="pill-link mono small" onclick="App.go('order:${a.po.id}')">${a.po.po_no}</span><div class="tiny muted">${fmtDay(a.at)}, ${a.at.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div></div>`).join('')+
+ `</div></div>`;
+ return h;
+}
+
+/* ---- CONTACTS ---- */
+let conSearch='';
+VIEWS.contacts=function(){
+ let h=pageHead('Contacts','Customers and staff.');
+ h+=`<div class="flex gap" style="margin-bottom:12px"><div class="search">${ic('search',16)}<input class="inp" placeholder="Search name or phone" oninput="conSearch=this.value.toLowerCase();renderConTable()"></div></div>`;
+ h+=`<div class="card" id="conWrap">${conTable()}</div>`;
+ return h;
+}
+function conTable(){
+ const cust=CUSTOMERS.filter(c=>!conSearch||c.name.toLowerCase().includes(conSearch)||c.phone.includes(conSearch)).map(c=>({type:'Customer',name:c.name,sub:c.address,phone:c.phone,contact:c.contact}));
+ const staff=USERS.filter(u=>u.role!=='viewer').map(u=>({type:'Staff',name:u.name,sub:ROLES.find(r=>r.key===u.role).label,phone:'—',contact:u.email}));
+ const rows=cust.concat(staff).filter(r=>!conSearch||r.name.toLowerCase().includes(conSearch));
+ return `<table class="tbl"><thead><tr><th>Name</th><th>Type</th><th>Detail</th><th>Contact</th><th>Phone</th></tr></thead><tbody>`+
+ rows.map(r=>`<tr><td><div class="flex items-center gap"><span class="avatar" style="width:26px;height:26px;font-size:11px">${esc(r.name[0])}</span><b>${esc(r.name)}</b></div></td><td><span class="badge ${r.type==='Customer'?'b-teal':'b-purple'}">${r.type}</span></td><td class="small muted">${esc(r.sub)}</td><td class="small">${esc(r.contact)}</td><td class="mono small">${esc(r.phone)}</td></tr>`).join('')+
+ `</tbody></table><div class="small muted" style="padding:10px 14px">${rows.length} contacts</div>`;
+}
+function renderConTable(){const w=el('conWrap');if(w)w.innerHTML=conTable();}
+
+/* ---- CALENDAR (light) ---- */
+VIEWS.calendar=function(){
+ let h=pageHead('Calendar','Deliveries, task due dates, and meetings in one place.');
+ const evs=[];
+ DELIVERIES.filter(d=>Math.abs(daysBetween(d.date,TODAY))<=10).forEach(d=>evs.push({d:d.date,type:'delivery',t:d.po.po_no+' · '+d.po.customer.name,ts:d.timeslot}));
+ POS.filter(p=>p.waiting_on).slice(0,18).forEach(p=>evs.push({d:p.needed_by,type:'task',t:(p.waiting_on.title)+' · '+p.po_no,ts:''}));
+ [['Ops weekly sync',addDays(TODAY,1)],['Supplier review',addDays(TODAY,3)]].forEach(([t,d])=>evs.push({d,type:'meeting',t,ts:'10:00 AM'}));
+ evs.sort((a,b)=>a.d-b.d);
+ const tone={delivery:'b-teal',task:'b-blue',meeting:'b-purple'};
+ // simple month strip
+ h+=`<div class="card" style="margin-bottom:16px"><div class="card-b"><div class="grid" style="grid-template-columns:repeat(7,1fr);gap:6px">`+
+ ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="tiny muted" style="text-align:center;font-weight:600">${d}</div>`).join('')+
+ Array.from({length:35}).map((_,i)=>{const day=addDays(addDays(TODAY,-TODAY.getDay()-7),i);const isT=daysBetween(day,TODAY)===0;const has=evs.filter(e=>daysBetween(e.d,day)===0);return `<div style="border:1px solid ${isT?'var(--brand-200)':'var(--line2)'};border-radius:8px;min-height:48px;padding:4px 6px;${isT?'background:var(--brand-50)':''}"><div class="tiny ${isT?'':'muted'}" style="font-weight:600">${day.getDate()}</div>${has.slice(0,2).map(e=>`<div class="dot" style="background:var(--${e.type==='delivery'?'teal':e.type==='meeting'?'brand':'brand2'});margin:2px 2px 0 0"></div>`).join('')}</div>`;}).join('')+
+ `</div></div></div>`;
+ h+=`<div class="card"><div class="card-h"><div class="t">Agenda</div></div><div class="card-b" style="padding-top:8px">`+
+ evs.slice(0,12).map(e=>`<div class="tline"><div style="width:54px" class="tiny muted nowrap">${fmtDate(e.d)}</div><span class="badge ${tone[e.type]}">${e.type}</span><div style="flex:1">${esc(e.t)}</div><div class="tiny muted">${e.ts}</div></div>`).join('')+
+ `</div></div>`;
+ return h;
+}
+
+/* ---- CANVASSING ---- */
+VIEWS.canvassing=function(){
+ const rows=[];
+ POS.filter(p=>p.stage==='canvassing').forEach(po=>po.items.filter(it=>it.line_status==='shortage').forEach(it=>rows.push({po,it})));
+ let h=pageHead('Canvassing','Compare supplier quotes for shortage lines, then pick the best.');
+ if(!rows.length)h+=`<div class="card"><div class="card-b muted" style="text-align:center;padding:28px">No shortage lines to canvass right now.</div></div>`;
+ else{
+   h+=`<div class="card"><table class="tbl"><thead><tr><th>PO</th><th>Item</th><th class="rt">Short qty</th>`+SUPPLIERS.slice(0,3).map(s=>`<th class="rt">${esc(s.name.split(' ')[0])}</th>`).join('')+`<th></th></tr></thead><tbody>`+
+   rows.slice(0,14).map(({po,it})=>{const base=it.product.cost;const q=[base*(1+rnd()*.15),base*(1+rnd()*.2),base*(1+rnd()*.1)];const best=Math.min(...q);return `<tr><td class="mono small" style="font-weight:600">${po.po_no}</td><td>${esc(it.description)}</td><td class="rt">${it.shortage_qty}</td>`+q.map(v=>`<td class="rt mono ${v===best?'':'muted'}">${peso(v)}${v===best?' <span class="badge b-green" style="font-size:10px">best</span>':''}</td>`).join('')+`<td class="rt">${App.can('canvass.manage')?`<button class="btn-2 btn-sm" onclick="toast('Demo: quote chosen, line marked.')">Choose</button>`:'<span class="muted2 small">view</span>'}</td></tr>`;}).join('')+
+   `</tbody></table></div>`;
+ }
+ return h;
+}
+
+/* ---- PROFILE ---- */
+VIEWS.profile=function(){
+ const u=App.user();const role=ROLES.find(r=>r.key===u.role);
+ let h=pageHead('My profile','Your account details.');
+ h+=`<div class="card" style="max-width:520px"><div class="card-b">
+   <div class="flex items-center gap" style="margin-bottom:14px"><span class="avatar" style="width:52px;height:52px;font-size:20px">${esc(u.name[0])}</span><div><div style="font-weight:600;font-size:16px">${esc(u.name)}</div><div class="small muted">${esc(u.email)}</div></div></div>
+   <div class="kv-row"><span class="k">Role</span><span>${esc(role.label)}</span></div>
+   <div class="kv-row"><span class="k">Department</span><span>${esc(u.dept)}</span></div>
+   <div class="kv-row"><span class="k">Status</span><span><span class="badge b-green">Active</span></span></div>
+   <div class="kv-row"><span class="k">Permissions</span><span>${u.role==='super_admin'?'All':(ROLE_PERMS[u.role].length+' granted')}</span></div>
+ </div></div>`;
+ return h;
+}
+
+/* ---- ADMIN ---- */
+let adminTab='permissions';
+VIEWS.admin=function(){
+ let h=pageHead('Admin','Users, permissions, and app settings.');
+ h+=`<div class="chips">${['permissions','users','settings'].map(t=>`<span class="chip ${adminTab===t?'active':''}" onclick="adminTab='${t}';App.go('admin')">${t[0].toUpperCase()+t.slice(1)}</span>`).join('')}</div>`;
+ if(adminTab==='permissions')h+=adminPerms();
+ else if(adminTab==='users')h+=adminUsers();
+ else h+=adminSettings();
+ return h;
+}
+function adminPerms(){
+ const groups=[...new Set(PERMS.map(p=>p[0]))];
+ const roleCols=ROLES.filter(r=>r.key!=='viewer');
+ let h=`<div class="banner">${ic('admin',15)} Toggle a permission to change what a role can see and do across the app. Super Admin always has everything.</div>`;
+ h+=`<div class="card" style="overflow:auto"><div class="card-b" style="padding:6px"><table class="matrix"><thead><tr><th class="rl">Permission</th>`+roleCols.map(r=>`<th>${esc(r.label.split(' ')[0])}</th>`).join('')+`</tr></thead><tbody>`;
+ groups.forEach(g=>{
+   h+=`<tr><td class="grp" colspan="${roleCols.length+1}">${g}</td></tr>`;
+   PERMS.filter(p=>p[0]===g).forEach(([grp,code,label])=>{
+     h+=`<tr><td class="pm">${label}<div class="tiny muted mono">${code}</div></td>`+
+     roleCols.map(r=>{const on=r.key==='super_admin'||(App.perms[r.key]||[]).includes(code);const dis=r.key==='super_admin';return `<td><input type="checkbox" class="cbx" ${on?'checked':''} ${dis?'disabled':''} onchange="togglePerm('${r.key}','${code}',this.checked)"></td>`;}).join('')+`</tr>`;
+   });
+ });
+ h+=`</tbody></table></div></div>`;
+ return h;
+}
+function togglePerm(role,code,on){
+ const arr=App.perms[role]||(App.perms[role]=[]);
+ const i=arr.indexOf(code);
+ if(on&&i<0)arr.push(code); if(!on&&i>=0)arr.splice(i,1);
+ toast(`${on?'Granted':'Revoked'} ${code} for ${role}`);
+ if(role===App.roleKey())App.buildNav();
+}
+function adminUsers(){
+ let h=`<div class="card"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th></tr></thead><tbody>`+
+ USERS.map(u=>`<tr><td><div class="flex items-center gap"><span class="avatar" style="width:26px;height:26px;font-size:11px">${esc(u.name[0])}</span><b>${esc(u.name)}</b></div></td><td class="small mono">${esc(u.email)}</td><td><span class="badge b-purple">${esc(ROLES.find(r=>r.key===u.role).label)}</span></td><td class="small muted">${esc(u.dept)}</td><td>${u.role==='viewer'?'<span class="badge b-amber">No role</span>':'<span class="badge b-green">Active</span>'}</td></tr>`).join('')+
+ `</tbody></table></div>`;
+ return h;
+}
+function adminSettings(){
+ return `<div class="grid g2" style="align-items:start">
+   <div class="card"><div class="card-h"><div class="t">Company</div></div><div class="card-b">
+     <div class="field"><label>Company name</label><input class="inp" value="${esc(COMPANY.name)}"></div>
+     <div class="field"><label>Short name (sidebar)</label><input class="inp" value="${esc(COMPANY.short)}"></div>
+     <button class="btn btn-sm" onclick="toast('Demo: settings saved.')">Save</button>
+   </div></div>
+   <div class="card"><div class="card-h"><div class="t">Aging thresholds</div></div><div class="card-b">
+     <div class="kv-row"><span class="k">Amber after</span><span>2 days</span></div>
+     <div class="kv-row"><span class="k">Red after</span><span>4 days</span></div>
+     <div class="sec-h" style="margin-top:14px">Delivery timeslots</div>
+     <div class="small muted">${TIMESLOTS.join(' · ')}</div>
+   </div></div></div>`;
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+(function boot(){
+ // login rows
+ el('demoRows').innerHTML=USERS.map(u=>{const r=ROLES.find(x=>x.key===u.role);return `<tr onclick="App.login('${u.key}')"><td><div style="font-weight:600">${esc(u.name)}</div><div class="tiny muted mono">${u.key}</div></td><td><span class="badge b-purple" style="font-size:10.5px">${esc(r.label)}</span></td><td class="tiny muted">${esc(r.desc)}</td></tr>`;}).join('');
+})();
+</script>
+</body>
+</html>
